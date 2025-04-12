@@ -39,7 +39,7 @@ const SignUp = () => {
                     >
                         <View style={{ flex: 1, width: '100%' }}>
                             <Text style={styles.appar}>FoodGo</Text>
-                            <View style = {{marginHorizontal: 20}} >
+                            <View style={{ marginHorizontal: 20 }} >
                                 <View>
                                     <View >
                                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
@@ -53,27 +53,27 @@ const SignUp = () => {
                                         />
                                     </View>
                                     <View >
-                                        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold'}}>
+                                        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
                                             Password
                                         </Text>
                                         <InputField
                                             placeholder='Enter your password'
                                             onChangeText={setPassword}
-                                            value={password} 
+                                            value={password}
                                             height={40}
-                                            />
+                                        />
                                     </View>
 
                                     <View >
-                                        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold'}}>
+                                        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
                                             Repeat Password
                                         </Text>
                                         <InputField
                                             placeholder='reapeat your password'
                                             onChangeText={setConfirmPassword}
-                                            value={confirmPassword} 
+                                            value={confirmPassword}
                                             height={40}
-                                            />
+                                        />
                                     </View>
                                     <View style={styles.checkboxContainer} >
                                         <Checkbox
@@ -92,7 +92,7 @@ const SignUp = () => {
                                         />
                                     </TouchableOpacity>
                                     <View
-                                        style = {{flexDirection: 'row', justifyContent:'flex-end', marginTop: hp(2)}}
+                                        style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(2) }}
                                     >
                                         <Text style={{ fontSize: 14, color: 'white' }}>
                                             Already have an account?{' '}
@@ -108,7 +108,7 @@ const SignUp = () => {
                             </View>
                         </View>
                         <View style={{ flex: 1, justifyContent: 'flex-start', width: '100%' }}>
-                            <View style={{ marginLeft: -wp(6)}}>
+                            <View style={{ marginLeft: -wp(6) }}>
                                 <Image
                                     source={image.logo1}
                                     style={[{ width: wp(85), height: hp(31) }]}
