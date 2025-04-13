@@ -1,10 +1,10 @@
 import { View, Text, SafeAreaView, TouchableOpacity, Image, StyleSheet, ScrollView, TextInput, Keyboard } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
-import Button from '../components/button';
+import Button from '../../components/button';
 import { router } from 'expo-router';
 import { hp, wp } from '@/utils/responsive';
-import InputField from '../components/inputfield';
+import InputField from '../../components/inputfield';
 
 const Login = () => {
     const [email, setEmail] = useState('');

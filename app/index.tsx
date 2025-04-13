@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Dimensions } from 'react-native';
 import { wp, hp } from '../utils/responsive';
-import Button from "./components/button";
+import Button from "../components/button";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 export default function Index() {
   return (

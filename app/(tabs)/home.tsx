@@ -108,7 +108,7 @@ const home = () => {
   )
 }
 
-export default home
+export default home;
 
 const styles = StyleSheet.create({
   container: {
