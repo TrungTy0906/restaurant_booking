@@ -4,9 +4,13 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { wp } from '@/utils/responsive';
 
-const DatePicker = () => {
+interface DatePickerProps {
+  date: Date;
+  setDate : (date: Date) => void;
+}
+
+const DatePicker = ({date, setDate} : DatePickerProps) => {
   const [show, setShow] = useState(false);
-  const [date, setDate] = useState(new Date());
 
   const handlePress = () => {
     setShow(true);
@@ -29,7 +33,7 @@ const DatePicker = () => {
       style = {
         {
           backgroundColor: '#474747',
-       borderRadius: 25,
+       borderRadius: 10,
        alignItems:'center',
        padding: 10,
         }

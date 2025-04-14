@@ -7,6 +7,8 @@ import { db } from '@/config/firebaseConfig'
 import { wp } from '@/utils/responsive'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import DatePicker from '../../components/restaurant/datepicker'
+import GuestPicker from '@/components/restaurant/GuestPicker'
+import FindSlots from '@/components/restaurant/FindSlots'
 // import DatePicker from '../components/restaurant/datePicker'
 
 const Restaurant = () => {
@@ -20,13 +22,20 @@ const Restaurant = () => {
   const [restaurantData, setRestaurantData] = useState<RestaurantData>({});
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  interface SlotsData {
+    ref_id?: string;
+    slot: string[];
+  }
+
+  const [slotData, setSlotData] = useState<SlotsData>({ slot: [] });
+  const [carouseData, setCarouseData] = useState<CarouselItem[]>([]);
+  const [date, setDate] = useState(new Date());
+  const [selectedNumber, setSelectNumber] = useState(2);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   interface CarouselItem {
     images: string[];
     // other fields if available
   }
-
-  const [carouseData, setCarouseData] = useState<CarouselItem[]>([]);
-
   const handleNextImage = () => {
     const carouselLength = carouseData[0]?.images.length;
     if (currentIndex < carouselLength - 1) {
@@ -40,7 +49,6 @@ const Restaurant = () => {
       flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     }
   }
-
   const handleBackImage = () => {
     const carouselLength = carouseData[0]?.images.length;
     if (currentIndex > 0) {
@@ -54,10 +62,7 @@ const Restaurant = () => {
       flatListRef.current?.scrollToIndex({ index: backIndex, animated: true });
     }
   }
-
-  const [slotData, setSlotData] = useState({});
-
-  const carouselItem = ({ item }: { item: any }) => {
+  const carouselItem = ({ item }: { item: string }) => {
     return (
       <View style={{
         width: wp(100) - 20,
@@ -133,7 +138,6 @@ const Restaurant = () => {
       </View>
     )
   };
-
   const getRestaurantData = async () => {
     try {
       const restaurantQuery = query(collection(db, "restaurants"), where("name", "==", restaurant));
@@ -163,19 +167,23 @@ const Restaurant = () => {
         setCarouseData(carouselImages)
 
         const slotsQuery = query(collection(db, "slots"), where("ref_id", "==", doc.ref));
-
         const slotsSnapshot = await getDocs(slotsQuery);
-        const slots: any = [];
-
-        if (slotsSnapshot.empty) {
+        
+        if (!slotsSnapshot.empty) {
+          const allSlots: string[] = [];
+        
+          slotsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.slot && Array.isArray(data.slot)) {
+              allSlots.push(...data.slot);
+            }
+          });
+        
+          setSlotData({ slot: allSlots }); 
+        } else {
           console.log("No matching slots documents.");
-          return;
         }
 
-        slotsSnapshot.forEach((slotsDoc) => {
-          slots.push(slotsDoc.data());
-        })
-        setSlotData(slots)
 
       }
 
@@ -183,7 +191,6 @@ const Restaurant = () => {
       console.error("Error fetching restaurant data: ", e);
     }
   }
-
   const handleLocation = async () => {
     const url = "https://maps.app.goo.gl/TtSmNr394bVp9J8n8";
     const supported = await Linking.canOpenURL(url);
@@ -197,8 +204,6 @@ const Restaurant = () => {
   useEffect(() => {
     getRestaurantData();
   }, []);
-
-  // console.log(carouseData)
 
   return (
     <SafeAreaView
@@ -257,29 +262,72 @@ const Restaurant = () => {
             {restaurantData?.opening} - {restaurantData?.closing}
           </Text>
         </View>
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignContent: 'center',
-          marginTop: 20,
-          marginLeft: 5,
-          marginRight: 10
+        <View style = {{
+          borderWidth: 1,
+          margin: 20,
+          borderColor: '#f49b33',
+          borderRadius: 10,
         }}>
           <View style={{
             flexDirection: 'row',
-            alignItems: 'center'
-
+            justifyContent: 'space-between',
+            alignContent: 'center',
+            marginTop: 20,
+            marginLeft: 5,
+            marginRight: 10,
+            marginBottom: 20
           }}>
-            <Ionicons name="calendar" size={24} color="#f49b33" />
-            <Text style={
-              {
-                color: 'white'
-              }
-            }>
-              {" "} Select booking date
-            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center'
+
+            }}>
+              <Ionicons name="calendar" size={24} color="#f49b33" />
+              <Text style={
+                {
+                  color: 'white'
+                }
+              }>
+                {" "} Select booking date
+              </Text>
+            </View>
+            <DatePicker date={date} setDate={setDate} />
           </View>
-          <DatePicker />
+
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignContent: 'center',
+            marginTop: 20,
+            marginLeft: 5,
+            marginRight: 10,
+            marginBottom: 20,
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center'
+
+            }}>
+              <Ionicons name="people" size={24} color="#f49b33" />
+              <Text style={
+                {
+                  color: 'white'
+                }
+              }>
+                {" "} Select number of guests
+              </Text>
+            </View>
+            <GuestPicker selectedNumber={selectedNumber} setSelectedNumber={setSelectNumber} />
+          </View>
+        </View>
+        <View>
+            <FindSlots 
+            date = {date} 
+            selectedNumber={selectedNumber}
+            slots= {slotData.slot}
+            selectedSlot= {selectedSlot}
+            setSelectedSlot={setSelectedSlot}
+            />
         </View>
       </ScrollView>
     </SafeAreaView>
