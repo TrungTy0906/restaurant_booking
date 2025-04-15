@@ -10,22 +10,79 @@ import {
     KeyboardAvoidingView,
     Platform,
     Keyboard,
+    Alert,
 
 } from 'react-native';
 
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '../../components/button';
-import { router } from 'expo-router';
 import { hp, wp } from '@/utils/responsive';
 import InputField from '../../components/inputfield';
 import Checkbox from 'expo-checkbox';
+import { useRoute } from '@react-navigation/native';
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { doc, getFirestore, setDoc } from 'firebase/firestore';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { FirebaseError } from '@firebase/util';
+import { ActivityIndicator } from 'react-native';
+
 const SignUp = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [keyboardOpen, setKeyboardOpen] = useState(false);
     const [isChecked, setChecked] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+
+    const router = useRouter();
+    const auth = getAuth();
+    const db = getFirestore();
+    const handlePress = async () => {
+        if (!email || !password || !confirmPassword) {
+            Alert.alert("Missing fields", "Please fill in all the fields.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert("Password mismatch", "Passwords do not match.");
+            return;
+        }
+
+        if (!isChecked) {
+            Alert.alert("Agreement required", "Please accept the terms and privacy policy.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredentials.user;
+
+            await setDoc(doc(db, 'users', user.uid), {
+                email: email,
+                createAt: new Date()
+            });
+
+            await AsyncStorage.setItem("userEmail", email);
+            await AsyncStorage.setItem("isGuest", "false");
+
+            router.push("/home");
+        } catch (error: unknown) {
+            if (error instanceof FirebaseError && error.code === "auth/email-already-in-use") {
+                Alert.alert("Signup Failed", "This email is already in use.");
+            } else {
+                Alert.alert("Signup Error", "Something went wrong. Please try again.");
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -57,10 +114,13 @@ const SignUp = () => {
                                             Password
                                         </Text>
                                         <InputField
-                                            placeholder='Enter your password'
+                                            placeholder="Enter your password"
                                             onChangeText={setPassword}
                                             value={password}
                                             height={40}
+                                            secureTextEntry={!showPassword}
+                                            showToggle={true}
+                                            onToggle={() => setShowPassword(!showPassword)}
                                         />
                                     </View>
 
@@ -69,10 +129,13 @@ const SignUp = () => {
                                             Repeat Password
                                         </Text>
                                         <InputField
-                                            placeholder='reapeat your password'
+                                            placeholder="Repeat your password"
                                             onChangeText={setConfirmPassword}
                                             value={confirmPassword}
                                             height={40}
+                                            secureTextEntry={!showConfirmPassword}
+                                            showToggle={true}
+                                            onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
                                         />
                                     </View>
                                     <View style={styles.checkboxContainer} >
@@ -84,12 +147,16 @@ const SignUp = () => {
                                         />
                                         <Text style={styles.label}>I agree with the Terms of Service and Privacy policy</Text>
                                     </View>
-                                    <TouchableOpacity style={styles.center} onPress={() => router.push('/(auth)/signup')}>
-                                        <Button
-                                            textcontroller="Sign up"
-                                            style={styles.text}
-                                            backgroundColor="#D3D3D3"
-                                        />
+                                    <TouchableOpacity style={styles.center} onPress={handlePress} disabled={loading}>
+                                        {loading ? (
+                                            <ActivityIndicator size="large" color="#000000" />
+                                        ) : (
+                                            <Button
+                                                textcontroller="Sign up"
+                                                style={styles.text}
+                                                backgroundColor="#D3D3D3"
+                                            />
+                                        )}
                                     </TouchableOpacity>
                                     <View
                                         style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(2) }}

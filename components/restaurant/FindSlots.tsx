@@ -1,19 +1,23 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import Button from '../button';
 import { wp } from '@/utils/responsive';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addDoc, collection, getFirestore } from 'firebase/firestore';
 
 interface FindSlotsProps {
     date: Date,
     selectedNumber: number,
     slots: string[],
+    restaurant: string,
     selectedSlot: string | null,
     setSelectedSlot: (selectedSlot: string |null) => void;
 }
 
-const FindSlots = ({ date, selectedNumber, slots, selectedSlot, setSelectedSlot }: FindSlotsProps) => {
+const FindSlots = ({ date, selectedNumber, slots,restaurant , selectedSlot, setSelectedSlot }: FindSlotsProps) => {
 
     const [slotsVisible, setSlotsVisible] = useState(false);
+    const db = getFirestore();
     const handlePress = () => {
         setSlotsVisible(!slotsVisible);
     }
@@ -26,6 +30,33 @@ const FindSlots = ({ date, selectedNumber, slots, selectedSlot, setSelectedSlot 
             setSelectedSlot(slot);
         }
     };
+
+    const handleBooking = async ()=> {
+        const userEmail = await AsyncStorage.getItem("userEmail");
+        console.log("Booking data", {
+            email: userEmail,
+            restaurant: restaurant,
+            date: date.toString(),
+            guests: selectedNumber,
+            slot: selectedSlot
+        });
+        
+        if (userEmail) {
+            try {
+                await addDoc(collection(db, 'bookings'), {
+                    email: userEmail,
+                    restaurant: restaurant,
+                    date : date.toString(),
+                    guests: selectedNumber,
+                    slot: selectedSlot
+                });
+                alert("Booking successfully");
+            }
+            catch (error) {
+
+            }
+        }
+    }
     return (
         <View>
             <View
@@ -55,7 +86,7 @@ const FindSlots = ({ date, selectedNumber, slots, selectedSlot, setSelectedSlot 
                     </Text>
                 </TouchableOpacity>
                 {selectedSlot != null && (
-                    <TouchableOpacity onPress={handlePress}
+                    <TouchableOpacity onPress={handleBooking}
                         style={{
                             backgroundColor: '#f49b33',
                             width: wp(43),

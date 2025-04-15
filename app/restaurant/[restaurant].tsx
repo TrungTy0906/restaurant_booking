@@ -325,6 +325,7 @@ const Restaurant = () => {
             date = {date} 
             selectedNumber={selectedNumber}
             slots= {slotData.slot}
+            restaurant = {restaurant as string }
             selectedSlot= {selectedSlot}
             setSelectedSlot={setSelectedSlot}
             />

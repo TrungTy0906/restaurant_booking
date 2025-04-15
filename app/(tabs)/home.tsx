@@ -7,11 +7,17 @@ import { router } from 'expo-router';
 import uploadData from '@/config/uploadData';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '@/config/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const home = () => {
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
+  const temp = async () => {
+    const value = await AsyncStorage.getItem("isGuest");
+    const email = await AsyncStorage.getItem("userEmail");
+    console.log(value, email);
+  };
 
   type Restaurant = {
     name: string;
@@ -55,6 +61,7 @@ const home = () => {
 
   useEffect(() => {
     getRestaurants();
+    temp();
   }, []);
 
 

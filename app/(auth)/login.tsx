@@ -1,15 +1,54 @@
-import { View, Text, SafeAreaView, TouchableOpacity, Image, StyleSheet, ScrollView, TextInput, Keyboard } from 'react-native'
+import { View, Text, SafeAreaView, TouchableOpacity, Image, StyleSheet, ScrollView, TextInput, Keyboard, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '../../components/button';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import { hp, wp } from '@/utils/responsive';
 import InputField from '../../components/inputfield';
-
+import { ActivityIndicator } from 'react-native';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FirebaseError } from 'firebase/app';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [keyboardOpen, setKeyboardOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const auth = getAuth();
+    const db = getFirestore();
+    const [showPassword, setShowPassword] = useState(false);
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Missing fields", "Please fill in all the fields.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredentials.user;
+
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+            if (userDoc.exists()) {
+                await AsyncStorage.setItem("userEmail", email);
+                router.push('/home');
+            }
+            else {
+                console.log('No such DOc');
+            }
+        } catch (error: unknown) {
+            if (error instanceof FirebaseError && error.code === "auth/wrong-password") {
+                Alert.alert("Signin Failed", "Incorrect password. Please try again.");
+            } else {
+                Alert.alert("Signin Error", "Something went wrong. Please try again.");
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -22,9 +61,9 @@ const Login = () => {
                     >
                         <View style={{ flex: 1, width: '100%' }}>
                             <Text style={styles.appar}>FoodGo</Text>
-                            <View style = {{marginHorizontal: 20}} >
+                            <View style={{ marginHorizontal: 20 }} >
                                 <View>
-                                    <View style = {{marginBottom: hp(3)}} >
+                                    <View style={{ marginBottom: hp(3) }} >
                                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
                                             Email
                                         </Text>
@@ -35,31 +74,37 @@ const Login = () => {
                                             height={62}
                                         />
                                     </View >
-                                    <View style = {{marginBottom: hp(3)}} >
-                                        <View style = {{flexDirection: 'row', justifyContent: 'space-between'}} >
-                                        <Text style={{ color: 'white',fontSize: 16, fontWeight: 'bold'}}>
-                                            Password
-                                        </Text>
-                                        <Text onPress={() => router.push('..')} style={{fontSize: 16, fontWeight: 'bold'}}>
-                                            Forgot password?
-                                        </Text>
+                                    <View style={{ marginBottom: hp(3) }} >
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }} >
+                                            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                                                Password
+                                            </Text>
+                                            <Text onPress={() => router.push('..')} style={{ fontSize: 16, fontWeight: 'bold' }}>
+                                                Forgot password?
+                                            </Text>
                                         </View>
                                         <InputField
                                             placeholder='Enter your password'
                                             onChangeText={setPassword}
                                             value={password}
-                                            height={62} 
-                                            />
-                                    </View>
-                                    <TouchableOpacity style={styles.center} onPress={() => router.push('/(auth)/signup')}>
-                                        <Button
-                                            textcontroller="Login"
-                                            style={styles.text}
-                                            backgroundColor="#D3D3D3"
+                                            height={62}
+                                            secureTextEntry={!showPassword}
+                                            showToggle={true}
+                                            onToggle={() => setShowPassword(!showPassword)}
                                         />
+                                    </View>
+                                    <TouchableOpacity style={styles.center} onPress={handleLogin} disabled={loading}>
+                                        {loading ? (
+                                            <ActivityIndicator size="large" color="#000000" />
+                                        ) :
+                                            (<Button
+                                                textcontroller="Login"
+                                                style={styles.text}
+                                                backgroundColor="#D3D3D3"
+                                            />)}
                                     </TouchableOpacity>
                                     <View
-                                        style = {{flexDirection: 'row', justifyContent:'flex-end', marginTop: hp(2)}}
+                                        style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(2) }}
                                     >
                                         <Text style={{ fontSize: 14, color: 'white' }}>
                                             Don't have an account?{' '}
@@ -74,8 +119,8 @@ const Login = () => {
                                 </View>
                             </View>
                         </View>
-                        <View style={{ flex: 1, justifyContent: 'flex-start', width: '100%'}}>
-                            <View style={{ marginLeft: -wp(6)}}>
+                        <View style={{ flex: 1, justifyContent: 'flex-start', width: '100%' }}>
+                            <View style={{ marginLeft: -wp(6) }}>
                                 <Image
                                     source={image.logo1}
                                     style={[{ width: wp(85), height: hp(31) }]}
